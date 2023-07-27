@@ -11,46 +11,48 @@ class BaseTechnique(ABC):
 
     Attributes: 
         map (fiass.index or sklearn.neighbors.NearestNeighbors): this is a structure consisting of all descriptors computed with 
-                           "compute_query_desc". It is search by "place_recognise" when
+                           "compute_map_desc". It is search by "place_recognise" when
                            performing place recognition 
     """
 
     map = None
 
     @abstractmethod
-    def compute_query_desc(self, queries: np.ndarray) -> np.ndarray:
+    def compute_query_desc(self, query_images: np.ndarray) -> dict:
         """
         computes the image descriptors of queries and returns them as a numpy array
 
         Args:
-            queries (np.ndarray): Images as a numpy array in (H, W, C) representation with a uint8 data type
+            query_images (np.ndarray): Images as a numpy array in (H, W, C) representation with a uint8 data type
 
         Returns: 
-            np.ndarray: numpy array of query descriptors
+            dict: a dict describing the images. The contents of which will be determined by the particular method used.
         """
         pass
 
     @abstractmethod
-    def compute_map_desc(self, map: np.ndarray) -> np.ndarray:
+    def compute_map_desc(self, map_images: np.ndarray) -> dict:
         """
-        computes the image descriptors of the map and returns them as a numpy array
+        computes the image descriptors of the map and returns them as a dictionary. The particular format
+        of the dictionary will depend on the type of vpr technique used
 
         Args:
-            map (np.ndarray): Images as a numpy array in (H, W, C) representation with a uint8 data type
+            map_images (np.ndarray): Images as a numpy array in (H, W, C) representation with a uint8 data type
         
-        Returns: 
-            np.ndarray: numpy array of map descriptors
+ Returns: 
+            dict: a dict describing the images. The contents of which will be determined by the particular method used.
         """
         pass
 
     @abstractmethod
-    def set_map(self, map: np.ndarray) -> None:
+    def set_map(self, map_descriptors: dict) -> None:
         """
         Sets the map attribute of this class with the map descriptors computed with "compute_map_desc". This 
         map is searched by "place_recognise" to perform place recognition.
 
         Args:
-            map (np.ndarray): Images as a numpy array in (N, H, W, C) representation with a uint8 data type
+            map (dict): dict: a dict describing the images. The contents of which will 
+                             be determined by the particular description method used.
 
         Returns:
             None:
@@ -83,8 +85,8 @@ class BaseTechnique(ABC):
         a numpy matrix M. where M[i, j] determines how similar query i is to map image j.
 
         Args:
-            query_descriptors (np.ndarray): matrix of query descriptors computed by "compute_query_desc"
-            map_descriptors (np.ndarray): matrix of query descriptors computed by "compute_map_desc"
+            query_descriptors (dict): dict of query descriptors computed by "compute_query_desc"
+            map_descriptors (dict): dict of query descriptors computed by "compute_map_desc"
 
         Returns: 
             np.ndarray: matrix M where M[i, j] measures cosine similarity between query image i and map image j
