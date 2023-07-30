@@ -1,14 +1,17 @@
-from dropbox_utils import dropbox_download_file
+from .dropbox_utils import dropbox_download_file
 import zipfile
 import os
 import numpy as np
-from base_dataset import BaseDataset
+from .base_dataset import BaseDataset
 import torchvision
 import torch
 from glob import glob
 from PIL import Image
-from utils import ImageDataset
+from .utils import ImageDataset
 from torch.utils.data import DataLoader
+
+
+package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
 
@@ -20,11 +23,12 @@ class SFU(BaseDataset):
     Attributes: 
         query_paths (np.ndarray): A vector of type string providing relative paths to the query images
         map_paths (np.ndarray): A vector of type string providing relative paths to the map images
+        name (str): A Name of the dataset
     """
 
     def __init__(self):
         # check to see if dataset is downloaded 
-        if not os.path.isdir(os.getcwd() + "/raw_images/SFU"):
+        if not os.path.isdir(package_directory + "/raw_images/SFU"):
             # download dataset as zip file
             dropbox_download_file("/vpr_datasets/SFU.zip", "raw_images/SFU.zip")
             # unzip the dataset 
@@ -34,8 +38,10 @@ class SFU(BaseDataset):
 
 
         # load images
-        self.map_paths = np.array(sorted(glob(os.getcwd() + "/raw_images/SFU/dry/*.jpg")))
-        self.query_paths = np.array(sorted(glob(os.getcwd() + "/raw_images/SFU/jan/*.jpg")))
+        self.map_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/dry/*.jpg")))
+        self.query_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/jan/*.jpg")))
+
+        self.name = "sfu"
 
 
     def query_images(self, partition: str) -> np.ndarray:
@@ -65,12 +71,10 @@ class SFU(BaseDataset):
 
     def map_images(self):
         """
-        This function returns the map images from the relevant partition of the dataset. 
-        The partitions are either "train", "val", "test" or "all"
+        This function returns the map images.
 
         args:
-            partition (str): determines which partition the datasets query images to return.
-                             must bet either "train", "val", "test", or "all"
+            None:
 
         Returns: 
             np.ndarray: The query images as a numpy array in [N, H, W, C] format with datatype uint8
@@ -172,7 +176,7 @@ class SFU(BaseDataset):
         """
         size = len(self.query_paths)
         
-        gt_data = np.load(os.getcwd() + '/raw_images/SFU/GT.npz')
+        gt_data = np.load(package_directory + '/raw_images/SFU/GT.npz')
 
         # load the full grount truth matrix with the relevant form
         if gt_type == "hard":
@@ -193,7 +197,6 @@ class SFU(BaseDataset):
             pass
         else:
             raise Exception("partition must be either 'train', 'val', 'test' or 'all'")
-        return gt
-
+        return gt.astype(bool)
 
 
