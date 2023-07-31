@@ -1,4 +1,3 @@
-from .dropbox_utils import dropbox_download_file
 import zipfile
 import os
 import numpy as np
@@ -7,7 +6,7 @@ import torchvision
 import torch
 from glob import glob
 from PIL import Image
-from .utils import ImageDataset, collate_fn
+from .utils import ImageDataset, dropbox_download_file, collate_fn
 from torch.utils.data import DataLoader
 
 
@@ -45,7 +44,7 @@ class SFU(BaseDataset):
         self.name = "sfu"
 
 
-    def query_images(self, partition: str) -> np.ndarray:
+    def query_images(self, partition: str, preprocess: torchvision.transforms.transforms.Compose = None ) -> np.ndarray:
         """
         This function returns the query images from the relevant partition of the dataset. 
         The partitions are either "train", "val", "test" or "all"
@@ -66,11 +65,15 @@ class SFU(BaseDataset):
         elif partition == "test": paths = self.query_paths[int(size*0.8):]
         elif partition == "all": paths = self.query_paths
         else: raise Exception("Partition must be 'train', 'val' or 'all'")
-            
-        return np.array([np.array(Image.open(pth)) for pth in paths])
+        
+        if preprocess == None:
+            return np.array([np.array(Image.open(pth)) for pth in paths])
+        else: 
+            imgs = np.array([np.array(Image.open(pth)) for pth in paths])
+            return collate_fn(torch.stack([preprocess(q) for q in imgs]))
 
 
-    def map_images(self):
+    def map_images(self, preprocess: torchvision.transforms.transforms.Compose = None):
         """
         This function returns the map images.
 
@@ -81,12 +84,17 @@ class SFU(BaseDataset):
             np.ndarray: The query images as a numpy array in [N, H, W, C] format with datatype uint8
 
         """
-        return np.array([np.array(Image.open(pth)) for pth in self.map_paths])
+                
+        if preprocess == None:
+            return np.array([np.array(Image.open(pth)) for pth in self.map_paths])
+        else: 
+            imgs = np.array([np.array(Image.open(pth)) for pth in self.map_paths])
+            return collate_fn(torch.stack([preprocess(q) for q in imgs]))
 
 
 
     def query_images_loader(self, partition: str, batch_size: int = 16, shuffle: bool = False,
-                            augmentation: torchvision.transforms.transforms.Compose = None, 
+                            preprocess: torchvision.transforms.transforms.Compose = None, 
                             pin_memory: bool = False, 
                             num_workers: int = 0) -> torch.utils.data.DataLoader:
 
@@ -121,14 +129,14 @@ class SFU(BaseDataset):
         else: raise Exception("Partition must be 'train', 'val' or 'all'")
 
         # build the dataloader
-        dataset = ImageDataset(paths, augmentation=augmentation)
+        dataset = ImageDataset(paths, preprocess=preprocess)
         dataloader = DataLoader(dataset, shuffle=shuffle, batch_size=batch_size, 
                                 pin_memory=pin_memory, num_workers=num_workers, collate_fn=collate_fn)
         return dataloader
 
 
     def map_images_loader(self, partition: str, batch_size: int = 16, shuffle: bool = False,
-                            augmentation: torchvision.transforms.transforms.Compose = None, 
+                            preprocess: torchvision.transforms.transforms.Compose = None, 
                             pin_memory: bool = False, 
                             num_workers: int = 0) -> torch.utils.data.DataLoader:
 
@@ -153,7 +161,7 @@ class SFU(BaseDataset):
         
         """
         # build the dataloader
-        dataset = ImageDataset(self.map_paths, augmentation=augmentation)
+        dataset = ImageDataset(self.map_paths, preprocess=preprocess)
         dataloader = DataLoader(dataset, shuffle=shuffle, batch_size=batch_size,
                                 pin_memory=pin_memory, num_workers=num_workers, collate_fn=collate_fn)
         return dataloader
