@@ -14,9 +14,16 @@ class ImageDataset(Dataset):
         return len(self.img_paths)
 
     def __getitem__(self, idx):
-        img = np.array(Image.open(self.img_paths[idx]))
+        img = Image.open(self.img_paths[idx])
 
         if self.augmentation is not None:
             img = self.augmentation(img)
 
-        return img
+        return np.array(img)
+
+
+
+def collate_fn(batch):
+    batch = np.array(batch)
+    batch = batch.transpose((0, 2, 3, 1)) if batch.shape[1] == 3 else batch
+    return batch

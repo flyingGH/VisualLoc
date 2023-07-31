@@ -5,17 +5,17 @@ import numpy as np
 from .base_dataset import BaseDataset
 import torchvision
 import torch
-from glob import glob
+import glob
 from PIL import Image
 from .utils import ImageDataset, collate_fn
 from torch.utils.data import DataLoader
+from scipy.signal import convolve2d
 
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
-
-class SFU(BaseDataset):
+class StLucia_small(BaseDataset):
     """
     This is an abstract class that serves as a template for implementing 
     visual place recognition datasets. 
@@ -28,21 +28,21 @@ class SFU(BaseDataset):
 
     def __init__(self):
         # check to see if dataset is downloaded 
-        if not os.path.isdir(package_directory + "/raw_images/SFU"):
-            print("====> Downloading SFU Dataset")
+        if not os.path.isdir(package_directory + "/raw_images/StLucia_small"):
+            print("====> Downloading StLucia_small Dataset")
             # download dataset as zip file
-            dropbox_download_file("/vpr_datasets/SFU.zip", package_directory + "/raw_images/SFU.zip")
+            dropbox_download_file("/vpr_datasets/StLucia_small.zip", package_directory + "/raw_images/StLucia_small.zip")
             # unzip the dataset 
-            with zipfile.ZipFile(package_directory + "/raw_images/SFU.zip","r") as zip_ref:
-                os.makedirs(package_directory + "/raw_images/SFU")
+            with zipfile.ZipFile(package_directory + "/raw_images/StLucia_small.zip","r") as zip_ref:
+                os.makedirs(package_directory + "/raw_images/StLucia_small")
                 zip_ref.extractall(package_directory + "/raw_images/")
 
 
         # load images
-        self.map_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/dry/*.jpg")))
-        self.query_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/jan/*.jpg")))
+        self.map_paths = np.array(sorted(glob.glob(package_directory + "/raw_images/StLucia_small/180809_1545/*.jpg")))
+        self.query_paths = np.array(sorted(glob.glob(package_directory + "/raw_images/StLucia_small/100909_0845/*.jpg")))
 
-        self.name = "sfu"
+        self.name = "gardenspointwalking"
 
 
     def query_images(self, partition: str) -> np.ndarray:
@@ -158,6 +158,7 @@ class SFU(BaseDataset):
                                 pin_memory=pin_memory, num_workers=num_workers, collate_fn=collate_fn)
         return dataloader
 
+
     def ground_truth(self, partition: str, gt_type: str) -> np.ndarray:
         """
           This function return sthe relevant ground truth matrix given the partition 
@@ -177,7 +178,7 @@ class SFU(BaseDataset):
         """
         size = len(self.query_paths)
         
-        gt_data = np.load(package_directory + '/raw_images/SFU/GT.npz')
+        gt_data = np.load(package_directory + '/raw_images/StLucia_small/GT.npz')
 
         # load the full grount truth matrix with the relevant form
         if gt_type == "hard":
@@ -200,3 +201,7 @@ class SFU(BaseDataset):
             raise Exception("partition must be either 'train', 'val', 'test' or 'all'")
         return gt.astype(bool)
 
+
+
+if __name__ == '__main__':
+    ds = StLucia_small()

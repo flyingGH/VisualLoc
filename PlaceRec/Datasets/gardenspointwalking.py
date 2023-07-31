@@ -5,17 +5,17 @@ import numpy as np
 from .base_dataset import BaseDataset
 import torchvision
 import torch
-from glob import glob
+import glob
 from PIL import Image
 from .utils import ImageDataset, collate_fn
 from torch.utils.data import DataLoader
+from scipy.signal import convolve2d
 
 
 package_directory = os.path.dirname(os.path.abspath(__file__))
 
 
-
-class SFU(BaseDataset):
+class GardensPointWalking(BaseDataset):
     """
     This is an abstract class that serves as a template for implementing 
     visual place recognition datasets. 
@@ -28,21 +28,21 @@ class SFU(BaseDataset):
 
     def __init__(self):
         # check to see if dataset is downloaded 
-        if not os.path.isdir(package_directory + "/raw_images/SFU"):
-            print("====> Downloading SFU Dataset")
+        if not os.path.isdir(package_directory + "/raw_images/GardensPointWalking"):
+            print("====> Downloading GardensPointWalking Dataset")
             # download dataset as zip file
-            dropbox_download_file("/vpr_datasets/SFU.zip", package_directory + "/raw_images/SFU.zip")
+            dropbox_download_file("/vpr_datasets/GardensPointWalking.zip", package_directory + "/raw_images/GardensPointWalking.zip")
             # unzip the dataset 
-            with zipfile.ZipFile(package_directory + "/raw_images/SFU.zip","r") as zip_ref:
-                os.makedirs(package_directory + "/raw_images/SFU")
+            with zipfile.ZipFile(package_directory + "/raw_images/GardensPointWalking.zip","r") as zip_ref:
+                os.makedirs(package_directory + "/raw_images/GardensPointWalking")
                 zip_ref.extractall(package_directory + "/raw_images/")
 
 
         # load images
-        self.map_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/dry/*.jpg")))
-        self.query_paths = np.array(sorted(glob(package_directory + "/raw_images/SFU/jan/*.jpg")))
+        self.map_paths = np.array(sorted(glob.glob(package_directory + "/raw_images/GardensPointWalking/night_right/*")))
+        self.query_paths = np.array(sorted(glob.glob(package_directory + "/raw_images/GardensPointWalking/day_right/*")))
 
-        self.name = "sfu"
+        self.name = "gardenspointwalking"
 
 
     def query_images(self, partition: str) -> np.ndarray:
@@ -177,13 +177,13 @@ class SFU(BaseDataset):
         """
         size = len(self.query_paths)
         
-        gt_data = np.load(package_directory + '/raw_images/SFU/GT.npz')
+        gt = np.eye(len(self.map_paths)).astype('bool')
 
         # load the full grount truth matrix with the relevant form
-        if gt_type == "hard":
-            gt = gt_data['GThard'].astype('bool')
-        elif gt_type == "soft":
-            gt = gt_data['GTsoft'].astype('bool')
+        if gt_type == 'soft':
+            gt = convolve2d(gt.astype(int), np.ones((17,1), 'int'), mode='same').astype('bool')
+        elif gt_type == 'hard':
+            pass 
         else: 
             raise Exception("gt_type must be either 'hard' or 'soft'")
 
@@ -200,3 +200,7 @@ class SFU(BaseDataset):
             raise Exception("partition must be either 'train', 'val', 'test' or 'all'")
         return gt.astype(bool)
 
+
+
+if __name__ == '__main__':
+    ds = GardensPointWalking()
