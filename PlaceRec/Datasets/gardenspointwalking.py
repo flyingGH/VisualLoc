@@ -73,7 +73,7 @@ class GardensPointWalking(BaseDataset):
             return collate_fn(torch.stack([preprocess(q) for q in imgs]))
 
 
-    def map_images(self, preprocess: torchvision.transforms.transforms.Compose = None ):
+    def map_images(self, preprocess: torchvision.transforms.transforms.Compose = None ) -> np.ndarray:
         """
         This function returns the map images.
 
