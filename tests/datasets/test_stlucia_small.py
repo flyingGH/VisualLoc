@@ -49,11 +49,11 @@ class GenericDataTest(setup_test):
 
 
     def test_map_sequence(self):
-        loader = self.ds.map_images_loader("all", shuffle=False)
+        loader = self.ds.map_images_loader(shuffle=False)
         for batch in loader:
             batch1 = batch
             break
-        loader = self.ds.map_images_loader("all", shuffle=False)
+        loader = self.ds.map_images_loader(shuffle=False)
         for batch in loader:
             batch2 = batch
             break
@@ -170,6 +170,7 @@ class GenericDataTest(setup_test):
         assert gt_soft.shape[0] == len(self.ds.map_paths)
         assert gt_soft.shape[1] == self.ds.query_images_loader("test").dataset.__len__()
         assert gt_hard.shape[1] == self.ds.query_images_loader("test").dataset.__len__()
+
 
 
 if __name__ == '__main__':

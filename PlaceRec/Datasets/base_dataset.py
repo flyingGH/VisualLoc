@@ -23,7 +23,7 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def query_images(self, partition: str) -> np.ndarray:
+    def query_images(self, partition: str, preprocess: torchvision.transforms.transforms.Compose = None) -> np.ndarray:
         """
         This function returns the query images from the relevant partition of the dataset. 
         The partitions are either "train", "val", "test" or "all"
@@ -31,6 +31,8 @@ class BaseDataset(ABC):
         args:
             partition (str): determines which partition the datasets query images to return.
                              must bet either "train", "val", "test", or "all"
+            preprocess (torchvision.transforms.transforms.Compose): A torchvision preprocessing
+                             pipeline that returns a tensor.
 
         Returns: 
             np.ndarray: The query images as a numpy array in [N, H, W, C] format with datatype uint8
@@ -40,13 +42,14 @@ class BaseDataset(ABC):
 
 
     @abstractmethod
-    def map_images(self):
+    def map_images(self, preprocess: torchvision.transforms.transforms.Compose = None):
         """
         This function returns the map images from the relevant partition of the dataset. 
         The partitions are either "train", "val", "test" or "all"
 
         args:
-            None
+            preprocess (torchvision.transforms.transforms.Compose): A torchvision preprocessing
+                    pipeline that returns a tensor.
 
         Returns: 
             np.ndarray: The query images as a numpy array in [N, H, W, C] format with datatype uint8
@@ -58,7 +61,7 @@ class BaseDataset(ABC):
 
     @abstractmethod
     def query_images_loader(self, partition: str, batch_size: int = 16, shuffle: bool = False,
-                            augmentation: torchvision.transforms.transforms.Compose = None, 
+                            preprocess: torchvision.transforms.transforms.Compose = None, 
                             pin_memory: bool = False, 
                             num_workers: int = 0) -> torch.utils.data.DataLoader:
 
@@ -73,7 +76,7 @@ class BaseDataset(ABC):
             batch_size (int): The batch size for the dataloader to return
             shuffle: (bool): True if you want the order of query images to be shuffles.
                              False will keep the images in sequence. 
-            augmentation (torchvision.transforms.transforms.Compose): The image augmentations
+            preprocess (torchvision.transforms.transforms.Compose): The image augmentations
                              to apply to the query images 
             pin_memory (bool): pinning memory from cpu to gpu if using gpu for inference
             num_workers (int): number of worker used for proceesing the images by the dataloader. 
@@ -87,7 +90,7 @@ class BaseDataset(ABC):
 
     @abstractmethod
     def map_images_loader(self, partition: str, batch_size: int = 16, shuffle: bool = False,
-                            augmentation: torchvision.transforms.transforms.Compose = None, 
+                            preprocess: torchvision.transforms.transforms.Compose = None, 
                             pin_memory: bool = False, 
                             num_workers: int = 0) -> torch.utils.data.DataLoader:
 
@@ -102,7 +105,7 @@ class BaseDataset(ABC):
             batch_size (int): The batch size for the dataloader to return
             shuffle: (bool): True if you want the order of map images to be shuffles.
                              False will keep the images in sequence. 
-            augmentation (torchvision.transforms.transforms.Compose): The image augmentations
+            preprocess (torchvision.transforms.transforms.Compose): The image augmentations
                              to apply to the map images 
             pin_memory (bool): pinning memory from cpu to gpu if using gpu for inference
             num_workers (int): number of worker used for proceesing the images by the dataloader. 

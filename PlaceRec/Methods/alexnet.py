@@ -5,7 +5,17 @@ from typing import Tuple
 import torch
 from torchvision import transforms
 from torchvision.models import AlexNet_Weights
+from sklearn.metrics.pairwise import cosine_similarity
 import sklearn
+import sklearn.neighbors
+
+
+# faiss only available on linux and mac
+try:
+    import faiss
+except: 
+    pass
+
 
 
 class AlexNet(BaseTechnique):
@@ -39,6 +49,8 @@ class AlexNet(BaseTechnique):
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
+        self.map = None
+
     def compute_query_desc(self, query_images: np.ndarray) -> dict:
         desc = self.model(torch.Tensor(query_images.transpose(0, 3, 1, 2)).to(self.device)).detach().cpu().numpy()
         Ds = desc.reshape([query_images.shape[0], -1]) # flatten
@@ -61,7 +73,6 @@ class AlexNet(BaseTechnique):
     def set_map(self, map_descriptors: dict) -> None:
         try: 
             # try to implement with faiss
-            import faiss
             self.map = faiss.IndexFlatIP(map_descriptors["map_descriptors"].shape[1])
             faiss.normalize_L2(map_descriptors["map_descriptors"])
             self.map.add(map_descriptors["map_descriptors"])
@@ -70,11 +81,12 @@ class AlexNet(BaseTechnique):
             # faiss is not available on unix or windows systems. In this case 
             # implement with scikit-learn
             from sklearn.neighbors import NearestNeighbors
-            self.map = NearestNeighbors(n_neighbors=10, algorithm='ball_tree', 
+            self.map = NearestNeighbors(n_neighbors=10, algorithm='auto', 
                                         metric='cosine').fit(map_descriptors["map_descriptors"])
 
 
     def place_recognise(self, query_images: np.ndarray, top_n: int=1) -> Tuple[np.ndarray, np.ndarray]:
+        """ Need to find new method for checking map type"""
         if isinstance(self.map, sklearn.neighbors._unsupervised.NearestNeighbors):
             desc = self.compute_query_desc(query_images)
             dist, idx = self.map.kneighbors(desc["query_descriptors"])
@@ -86,7 +98,8 @@ class AlexNet(BaseTechnique):
             return idx, dist
 
     def similarity_matrix(self, query_descriptors: dict, map_descriptors: dict) -> np.ndarray:
-        return np.eye(10)
+        return cosine_similarity(map_descriptors["map_descriptors"],
+                                 query_descriptors["query_descriptors"]).astype(np.float32)
 
 
         
