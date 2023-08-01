@@ -83,12 +83,8 @@ def conv_match_dotproduct(d1, d2, regional_gd, total_no_of_regions):  # Assumed 
 
 
 class HOG(BaseTechnique):
-
     def __init__(self):
         self.device = "cpu"
-
-
-
         # preprocess images for method (None required)
         self.preprocess = transforms.ToTensor()
         # initialize the map to None
@@ -96,21 +92,23 @@ class HOG(BaseTechnique):
         # method name
         self.name = "hog"
 
-
-    def compute_query_desc(self, query_images: np.ndarray) -> dict:
+        # Method Parameters
         winSize = (512, 512)
         blockSize = (16, 16)
         blockStride = (8, 8)
         cellSize = (16, 16)
         nbins = 9
 
-        hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
+        self.hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
+        self.winSize = winSize
+
+    def compute_query_desc(self, query_images: np.ndarray) -> dict:
         ref_desc_list = []
         for ref_image in query_images:
             if ref_image is not None:
                 img = ref_image * 255
-                img = cv2.cvtColor(cv2.resize(img.astype(np.uint8), winSize), cv2.COLOR_BGR2GRAY)
-                hog_desc = hog.compute(img)
+                img = cv2.cvtColor(cv2.resize(img.astype(np.uint8), self.winSize), cv2.COLOR_BGR2GRAY)
+                hog_desc = self.hog.compute(img)
             ref_desc_list.append(hog_desc)
 
         query_desc = np.array(ref_desc_list).astype(np.float32)
@@ -118,19 +116,12 @@ class HOG(BaseTechnique):
 
 
     def compute_map_desc(self, map_images: np.ndarray) -> dict:
-        winSize = (512, 512)
-        blockSize = (16, 16)
-        blockStride = (8, 8)
-        cellSize = (16, 16)
-        nbins = 9
-
-        hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins)
         ref_desc_list = []
         for ref_image in map_images:
             if ref_image is not None:
                 img = ref_image * 255
-                img = cv2.cvtColor(cv2.resize(img.astype(np.uint8), winSize), cv2.COLOR_BGR2GRAY)
-                hog_desc = hog.compute(img)
+                img = cv2.cvtColor(cv2.resize(img.astype(np.uint8), self.winSize), cv2.COLOR_BGR2GRAY)
+                hog_desc = self.hog.compute(img)
             ref_desc_list.append(hog_desc)
 
         map_desc = np.array(ref_desc_list).astype(np.float32)
@@ -161,6 +152,7 @@ class HOG(BaseTechnique):
             faiss.normalize_L2(desc["query_descriptors"])
             dist, idx = self.map.search(desc["query_descriptors"], top_n)
             return idx, dist
+
 
     def similarity_matrix(self, query_descriptors: dict, map_descriptors: dict) -> np.ndarray:
         return cosine_similarity(map_descriptors["map_descriptors"],
