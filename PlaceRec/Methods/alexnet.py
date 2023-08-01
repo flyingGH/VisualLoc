@@ -24,7 +24,7 @@ class AlexNet(BaseTechnique):
         # Name of technique
         self.name = 'alexnet'
 
-        self.model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', weights=AlexNet_Weights.DEFAULT)
+        self.model = torch.hub.load('pytorch/vision:v0.10.0', 'alexnet', weights=AlexNet_Weights.DEFAULT, verbose=False)
         self.model = self.model.features[:7]
 
         # send the model to relevant accelerator

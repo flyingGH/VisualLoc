@@ -2,17 +2,16 @@ import sys
 sys.path.append('/Users/olivergrainge/Documents/github/VisualLoc')
 
 from PlaceRec.Datasets import GardensPointWalking
-from PlaceRec.Methods import AlexNet
+from PlaceRec.Methods import CosPlace
 import numpy as np
 import unittest
-import torch
 from torchvision import transforms 
 
 
 class setup_test(unittest.TestCase):
 
     def setUp(self):
-        self.method = AlexNet()
+        self.method = CosPlace()
         self.ds = GardensPointWalking()
         self.sample_size = 10
 
