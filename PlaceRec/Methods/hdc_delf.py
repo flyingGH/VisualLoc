@@ -8,7 +8,7 @@ import sklearn
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics.pairwise import cosine_similarity
 import tensorflow as tf
-
+from tqdm.auto import tqdm
 
 class HDC:
     """
@@ -262,13 +262,13 @@ class HDC_DELF(BaseTechnique):
     
     def compute_query_desc(self, query_images: np.ndarray) -> dict:
         query_images = query_images * 255
-        query_desc = self.feature_extractor(query_images.astype(np.uint8))
-        return {"query_descriptors", query_desc}
+        query_desc = self.feature_extractor.compute_features(query_images.astype(np.uint8), disable_pbar=True)
+        return {"query_descriptors": query_desc}
 
     def compute_map_desc(self, map_images: np.ndarray) -> dict:
         map_images = map_images * 255
-        map_desc = self.feature_extractor(map_images.astype(np.uint8))
-        return {"map_descriptors", map_desc}
+        map_desc = self.feature_extractor.compute_features(map_images.astype(np.uint8), disable_pbar=True)
+        return {"map_descriptors": map_desc}
 
 
     def set_map(self, map_descriptors: dict) -> None:
