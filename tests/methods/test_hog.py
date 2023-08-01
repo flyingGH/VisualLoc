@@ -49,7 +49,7 @@ class GenericMethodTest(setup_test):
 
     def test_similarity_matrix(self):
         query_images = self.ds.query_images("test", preprocess=self.method.preprocess)[:self.sample_size]
-        map_images = self.ds.map_images(preprocess=self.method.preprocess)[:self.sample_size]
+        map_images = self.ds.map_images(preprocess=self.method.preprocess)[:self.sample_size + 1]
         query_desc = self.method.compute_query_desc(query_images)
         map_desc = self.method.compute_map_desc(map_images)
         S = self.method.similarity_matrix(query_desc, map_desc)
