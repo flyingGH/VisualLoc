@@ -44,14 +44,15 @@ def dropbox_download_file(dropbox_file_path, local_file_path):
 
     try:
         dbx = dropbox_connect()
+        dbx.files_download_to_file(local_file_path, dropbox_file_path)
 
-        with open(local_file_path, 'wb') as f:
-            metadata, result = dbx.files_download(path=dropbox_file_path)
-            f.write(result.content)
     except Exception as e:
         print('Error downloading file from Dropbox: ' + str(e))
 
 
 def collate_fn(batch):
     return np.array(batch).transpose(0, 2, 3, 1)
+
+
+
 
