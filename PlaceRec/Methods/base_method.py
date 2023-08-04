@@ -60,7 +60,20 @@ class BaseTechnique(ABC):
         pass 
 
     @abstractmethod
-    def place_recognise(self, queries: np.ndarray, top_n: int = 1) -> Tuple[np.ndarray, np.ndarray]:
+    def set_query(self, query_descriptors: dict) -> None:
+        """
+        Sets the query_descriptor of the class. 
+
+        Args:
+            query_descriptors (dict): a dictionary of query descriptors produced by the "compute_query_desc" function
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
+    def place_recognise(self, query_images: np.ndarray, top_n: int = 1) -> Tuple[np.ndarray, np.ndarray]:
         """
         Performs place recognition by computing query image representations and using them to search the map attribute
         to find the relevant map
@@ -90,5 +103,28 @@ class BaseTechnique(ABC):
 
         Returns: 
             np.ndarray: matrix M where M[i, j] measures cosine similarity between query image i and map image j
+        """
+        pass
+
+    @abstractmethod
+    def save_descriptors(dataset_name: str) -> None:
+        """
+        Method saves both the query and map attributes of the class to disk. 
+
+        Args:
+            dataset_name (str): The name of the dataset on which the descriptors were computed:
+        
+        Returns: 
+            None
+        """
+        pass
+    
+    @abstractmethod
+    def load_descriptors(dataset_name: str) -> Tuple[dict, dict]:
+        """
+        Loads the descriptors computed on the "dataset_name" from disk
+
+        Args:
+            dataset_name (str): The name of the dataset to load the descriptors from 
         """
         pass

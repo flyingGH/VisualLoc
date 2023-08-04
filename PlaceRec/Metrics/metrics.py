@@ -14,7 +14,6 @@ def recallatk(ground_truth: np.ndarray, preds: np.ndarray, similarity: np.ndarra
     top_idxs = np.unravel_index(sorted_idxs, similarity.shape)
     top_preds = preds[top_idxs]
     top_gt = ground_truth[top_idxs]
-    print("=======================================", np.sum(top_gt))
     TP = np.count_nonzero(top_gt & top_preds)
     GTP = np.count_nonzero(top_gt)
     if GTP == 0:

@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 
 def pr_curve(ground_truth:np.ndarray, similarity: np.ndarray, ground_truth_soft: Union[None, np.ndarray] = None, n_thresh: int=100,
-             matching: str = 'multi') -> tuple[np.ndarray, np.ndarray]:
-
+             matching: str = 'multi'):
+    """
+    Return the precision and recalls over a number of thesholds
+    """
     assert similarity.shape == ground_truth.shape, "S and GT must be the same shape"
     assert (similarity.ndim == 2), "S_in, GThard and GTsoft must be two-dimensional"
     ground_truth = ground_truth.astype('bool')
@@ -34,12 +36,12 @@ def pr_curve(ground_truth:np.ndarray, similarity: np.ndarray, ground_truth_soft:
 
 
 def plot_pr_curve(ground_truth: np.ndarray, similarity: np.ndarray, ground_truth_soft: Union[None, np.ndarray] = None, n_thresh: int=100,
-             matching: str = 'multi', title: str = None, show=True) -> tuple[np.ndarray, np.ndarray]:
-
+             matching: str = 'multi', title: str = None, show: bool=True):
+    """
+    Plot of a single pr curve
+    """
     P, R = pr_curve(ground_truth, similarity, ground_truth_soft, n_thresh=100)
-
     fig, ax = plt.subplots()
-
     ax.plot(R, P)
     ax.set_xlabel("Recall")
     ax.set_ylabel("Precision")
@@ -47,9 +49,41 @@ def plot_pr_curve(ground_truth: np.ndarray, similarity: np.ndarray, ground_truth
         ax.set_title(title)
     else:
         ax.set_title("PR Curve")
-    plt.show()
+    if show == True:
+        plt.show()
     return ax
 
+
+def plot_pr_curves(ground_truth: np.ndarray, all_similarity: dict, ground_truth_soft: Union[None, np.ndarray] = None, n_thresh: int=100,
+             matching: str = 'multi', title: str = None, show: bool=True) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Plot of multiple pr curves on a single graph. all_similarity is a dictionary
+    of keys consisting of method names and values the similarity matrix it produced. 
+    """
+    fig, ax = plt.subplots()
+    for method_name, similarity in all_similarity.items():
+        P, R = pr_curve(ground_truth, similarity, ground_truth_soft, n_thresh=100)
+        ax.plot(R, P, label=method_name)
+    ax.set_xlabel("Recall")
+    ax.set_ylabel("Precision")
+    if title:
+        ax.set_title(title)
+    else:
+        ax.set_title("PR Curve")
+    if show ==True:
+        plt.show()
+    return ax
+
+
+
+def plot_metric(methods: list, scores: np.ndarray, title: str, show: bool=True):
+    fig, ax = plt.subplots()
+    ax.bar(methods, scores)
+    plt.xticks(rotation=45)
+    ax.set_title(title, fontsize='16')
+    if show:
+        plt.show()
+    return ax 
 
 
 

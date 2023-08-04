@@ -8,7 +8,8 @@ from torchvision.models import AlexNet_Weights
 from sklearn.metrics.pairwise import cosine_similarity
 import sklearn
 import sklearn.neighbors
-
+import pickle
+import os
 
 # faiss only available on linux and mac
 try:
@@ -16,7 +17,7 @@ try:
 except: 
     pass
 
-
+alexnet_directory = os.path.dirname(os.path.abspath(__file__))
 
 class AlexNet(BaseTechnique):
     
@@ -50,6 +51,8 @@ class AlexNet(BaseTechnique):
         ])
 
         self.map = None
+        self.map_desc = None
+        self.query_desc = None
 
     def compute_query_desc(self, query_images: np.ndarray) -> dict:
         desc = self.model(torch.Tensor(query_images.transpose(0, 3, 1, 2)).to(self.device)).detach().cpu().numpy()
@@ -85,6 +88,10 @@ class AlexNet(BaseTechnique):
                                         metric='cosine').fit(map_descriptors["map_descriptors"])
 
 
+    def set_query(self, query_descriptors: dict) -> None:
+        self.query_desc = query_descriptors
+
+
     def place_recognise(self, query_images: np.ndarray, top_n: int=1) -> Tuple[np.ndarray, np.ndarray]:
         """ Need to find new method for checking map type"""
         if isinstance(self.map, sklearn.neighbors._unsupervised.NearestNeighbors):
@@ -100,6 +107,19 @@ class AlexNet(BaseTechnique):
     def similarity_matrix(self, query_descriptors: dict, map_descriptors: dict) -> np.ndarray:
         return cosine_similarity(map_descriptors["map_descriptors"],
                                  query_descriptors["query_descriptors"]).astype(np.float32)
+
+
+    def save_descriptors(self, dataset_name: str) -> None:
+        os.path.makedirs(alexnet_directory + "/" + dataset_name)
+        with open(alexnet_dirctory + "/" + dataset_name + "/" + self.name + "_query.pkl", "wb") as f:
+            pickle.dump(self.queries, f)
+        with open(alexnet_dirctory + "/" + dataset_name + "/" + self.name + "_query.pkl", "wb") as f:
+            pickle.dumb(self.queries, f)
+        
+
+    def load_descriptors(self, dataset_name: str) -> Tuple[dict, dict]
+
+
 
 
         

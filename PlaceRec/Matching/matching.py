@@ -12,7 +12,6 @@ def auto_threshold(similarity: np.ndarray) -> np.ndarray:
     mu = np.median(similarity)
     sig = np.median(np.abs(similarity - mu)) / 0.675
     thresh = norm.ppf(1 - 1e-6, loc=mu, scale=sig)
-    print("==========",thresh, similarity.min(), similarity.max())
     matches = similarity >= thresh
     return matches
 
